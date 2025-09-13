@@ -47,7 +47,4 @@ The editor allows users to **draw curves**, adjust control points, and animate c
 - **Core Components**: LineRenderer, ScriptableObject, TextMeshPro UI  
 - **Data Format**: JSON  
 
----
-
-## 📂 Project Structure
 
