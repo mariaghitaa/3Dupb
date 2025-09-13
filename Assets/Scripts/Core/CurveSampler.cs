@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class CurveSampler
 {
-    /* ================= Polyline ================== */
+    /* Polyline */
     public static Vector3 Polyline(List<Vector3> pts, bool closed, float t)
     {
         if (pts.Count == 0) return Vector3.zero;
@@ -16,7 +16,7 @@ public static class CurveSampler
         int idx = Mathf.FloorToInt(scaled);
         float localT = scaled - idx;
 
-        // index ciclic când e closed
+        // when is closed
         int i0 = idx % pts.Count;
         int i1 = (idx + 1) % pts.Count;
 
@@ -30,13 +30,13 @@ public static class CurveSampler
     }
 
 
-    /* =============== Catmull-Rom ================= */
+    /* Catmull-Rom  */
     public static Vector3 CatmullRom(List<Vector3> pts, bool closed, float t)
     {
         int count = pts.Count;
         if (count < 2) return count == 1 ? pts[0] : Vector3.zero;
 
-        // Copii locale pentru capete dacă nu e închisă
+        // verify if the loop is closed or not and create local copies for ends if not
         List<Vector3> p = closed ? pts : new List<Vector3>(pts) { pts[^1] };
         if (!closed) p.Insert(0, pts[0]);
         int segCount = p.Count - (closed ? 0 : 3);
@@ -62,7 +62,7 @@ public static class CurveSampler
         return (CatmullRom(pts, closed, t + eps) - CatmullRom(pts, closed, t)).normalized;
     }
 
-    /* ================== Bezier =================== */
+    /* Bezier */
     public static Vector3 Bezier(List<Vector3> pts, float t)
     {
         if (pts.Count == 0) return Vector3.zero;
@@ -86,6 +86,32 @@ public static class CurveSampler
         return (Bezier(pts, t + eps) - Bezier(pts, t)).normalized;
     }
 
-    /* ================ Helpers ==================== */
+    /* Bezier cubic segmentat */
+
+    public static Vector3 BezierCubic(List<Vector3> pts, int segIndex, float u)
+    {
+        // 4 points per segment
+        int baseIdx = segIndex * 3;
+        Vector3 p0 = pts[baseIdx];
+        Vector3 p1 = pts[baseIdx + 1];
+        Vector3 p2 = pts[baseIdx + 2];
+        Vector3 p3 = pts[baseIdx + 3];
+
+        float t = u;
+        float inv = 1 - t;
+        return inv * inv * inv * p0 +
+               3 * inv * inv * t * p1 +
+               3 * inv * t * t * p2 +
+               t * t * t * p3;
+    }
+
+    public static Vector3 BezierCubicTangent(List<Vector3> pts, int segIndex, float u)
+    {
+        const float eps = 0.0005f;
+        Vector3 a = BezierCubic(pts, segIndex, Mathf.Clamp01(u));
+        Vector3 b = BezierCubic(pts, segIndex, Mathf.Clamp01(u + eps));
+        return (b - a).normalized;
+    }
     static int Mod(int a, int b) => (a % b + b) % b;
 }
+
